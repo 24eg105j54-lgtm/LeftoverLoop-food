@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Requests & Claims - LeftoverLoop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon">LL</div>
+      <span>LeftoverLoop</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="receiver.html" class="nav-link">Browse Food</a></li>
+      <li><a href="requests.html" class="nav-link active">Requests & Claims</a></li>
+      <li><a href="impact.html" class="nav-link">Impact Report</a></li>
+    </ul>
+    <div id="navAuthContainer"></div>
+  </nav>
+
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div>
+        <h1>My Food Requests & Claim Vouchers</h1>
+        <p style="color: var(--text-muted);">Track your requested food status, view collection codes, and print receipts.</p>
+      </div>
+      <div class="glass-card" style="padding: 0.5rem 1rem; display: flex; gap: 0.5rem; align-items: center;">
+        <input type="text" id="searchCodeInput" class="form-control" placeholder="Lookup LL-XXXXXX" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+        <button onclick="searchCollectionCode()" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Lookup</button>
+      </div>
+    </div>
+
+    <!-- Requests Table -->
+    <div class="glass-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Food Item</th>
+            <th>Donor / Provider</th>
+            <th>Qty</th>
+            <th>Collection Code</th>
+            <th>Requested Date</th>
+            <th>Status Indicator</th>
+            <th>Digital Receipt</th>
+          </tr>
+        </thead>
+        <tbody id="myRequestsTbody">
+          <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading requests...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 LeftoverLoop Food Redistribution System.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!AuthManager.isAuthenticated()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      loadRequests();
+    });
+
+    async function loadRequests() {
+      const user = AuthManager.getUser();
+      const tbody = document.getElementById('myRequestsTbody');
+
+      try {
+        let requests = [];
+        if (user.role === 'ROLE_DONOR' || user.role === 'ROLE_ORGANIZATION') {
+          requests = await ApiClient.getIncomingRequests();
+        } else {
+          requests = await ApiClient.getMyRequests();
+        }
+
+        if (!requests || requests.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No requests found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = requests.map(req => `
+          <tr>
+            <td><strong>${req.donationTitle}</strong><br><span style="font-size: 0.8rem; color: var(--text-muted);">${req.donationCategory}</span></td>
+            <td>${req.donorOrganization || req.donorName}</td>
+            <td><strong>${req.requestedQuantity} ${req.donationUnit}</strong></td>
+            <td><code style="background: rgba(255,255,255,0.1); padding: 0.25rem 0.6rem; border-radius: 4px; color: var(--accent-green); font-weight: 700;">${req.collectionCode}</code></td>
+            <td>${formatDate(req.requestedAt)}</td>
+            <td>${renderStatusBadge(req.statusColor, req.status)}</td>
+            <td>
+              <button onclick="openReceipt(${req.id}, '${req.collectionCode}')" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; cursor: pointer;">View Receipt &amp; QR</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--accent-red);padding:1.5rem;">⚠️ Could not load requests: ${err.message || 'Check that the backend is running at localhost:8080.'}</td></tr>`;
+        showToast(err.message || 'Failed to load requests. Is the backend running?', 'error');
+      }
+    }
+
+    function openReceipt(id, code) {
+      var url = '/receipt?id=' + id + '&code=' + encodeURIComponent(code);
+      window.location.href = url;
+    }
+
+    function searchCollectionCode() {
+      const code = document.getElementById('searchCodeInput').value.trim().toUpperCase();
+      if (!code) {
+        showToast('Please enter a collection code to look up.', 'warning');
+        return;
+      }
+      let found = false;
+      const rows = document.querySelectorAll('#myRequestsTbody tr');
+      rows.forEach(r => {
+        if (r.textContent.includes(code)) {
+          r.style.background = 'rgba(16, 185, 129, 0.2)';
+          r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          found = true;
+        } else {
+          r.style.background = 'transparent';
+        }
+      });
+      if (found) {
+        showToast(`Code ${code} found — highlighted above.`, 'success');
+      } else if (code.startsWith('LL-')) {
+        // Code not in this user's list — look it up on the receipt page directly
+        window.location.href = '/receipt?code=' + encodeURIComponent(code);
+      } else {
+        showToast(`Code "${code}" not found in your requests. Collection codes start with LL-.`, 'warning');
+      }
+    }
+  </script>
+</body>
+</html>

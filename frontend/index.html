@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeftoverLoop - AI-Powered Food Donation & Redistribution</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon">LL</div>
+      <span>LeftoverLoop</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link active">Home</a></li>
+      <li><a href="receiver.html" class="nav-link">Browse Food</a></li>
+      <li><a href="impact.html" class="nav-link">Impact Report</a></li>
+    </ul>
+    <div id="navAuthContainer" style="display: flex; align-items: center; gap: 1rem;">
+      <!-- Populated dynamically by auth.js -->
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header style="padding: 4rem 1.5rem; text-align: center; max-width: 1000px; margin: 0 auto;">
+    <span class="badge badge-green" style="margin-bottom: 1rem;">🌱 Rescuing Meals • Empowering Communities</span>
+    <h1 style="font-size: 3.2rem; font-weight: 900; line-height: 1.15; margin-bottom: 1.25rem;">
+      Zero Food Waste.<br>
+      <span style="background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI-Powered Redistribution.</span>
+    </h1>
+    <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 750px; margin: 0 auto 2rem;">
+      Connect restaurants, hotels, grocers, and individuals with shelters, NGOs, and community receivers in real time with automated remaining quantity tracking and verified QR code collection.
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="register.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 1.75rem;">Donate Surplus Food</a>
+      <a href="receiver.html" class="btn btn-secondary" style="font-size: 1.1rem; padding: 0.8rem 1.75rem;">Request Food</a>
+      <a href="impact.html" class="btn btn-ai" style="font-size: 1.1rem; padding: 0.8rem 1.75rem;">View Live Impact</a>
+    </div>
+  </header>
+
+  <!-- Impact Stats Banner -->
+  <section class="container">
+    <div class="glass-card grid-4" style="text-align: center; padding: 2rem;">
+      <div>
+        <h2 id="homeTotalDonated" style="font-size: 2.2rem; color: var(--accent-green);">--</h2>
+        <p style="color: var(--text-muted);">Units Donated</p>
+      </div>
+      <div>
+        <h2 id="homeTotalCollected" style="font-size: 2.2rem; color: var(--accent-blue);">--</h2>
+        <p style="color: var(--text-muted);">Units Rescued</p>
+      </div>
+      <div>
+        <h2 id="homePeopleServed" style="font-size: 2.2rem; color: var(--accent-purple);">--</h2>
+        <p style="color: var(--text-muted);">People Served</p>
+      </div>
+      <div>
+        <h2 id="homeActiveListings" style="font-size: 2.2rem; color: var(--accent-orange);">--</h2>
+        <p style="color: var(--text-muted);">Active Listings Available</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Available Food Feed Preview -->
+  <section class="container" style="margin-top: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h2>Available Food Listings</h2>
+      <a href="receiver.html" class="btn btn-secondary">Explore All & Filter →</a>
+    </div>
+    <div id="homeListingsGrid" class="grid-3">
+      <!-- Loaded dynamically via JavaScript -->
+      <div class="glass-card" style="text-align: center; padding: 3rem;">
+        <p style="color: var(--text-muted);">Loading active food donations...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Four User Roles Showcase -->
+  <section class="container" style="margin-top: 3rem; margin-bottom: 4rem;">
+    <h2 style="text-align: center; margin-bottom: 2rem;">Platform Workflows by Role</h2>
+    <div class="grid-4">
+      <div class="glass-card" style="text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👨‍🍳</div>
+        <h3>DONOR</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Restaurants & caterers post excess food, track remaining quantities, approve requests, and verify pickup.</p>
+        <a href="donor.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">Donor Hub</a>
+      </div>
+
+      <div class="glass-card" style="text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🙌</div>
+        <h3>RECEIVER</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Shelters & individuals browse listings, get AI matches, request partial quantities, and claim via QR codes.</p>
+        <a href="receiver.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">Receiver Hub</a>
+      </div>
+
+      <div class="glass-card" style="text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🏢</div>
+        <h3>ORGANIZATION</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">NGOs manage bulk donations, track remaining stock, manage incoming requests, and view distribution reports.</p>
+        <a href="organization.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">Organization Hub</a>
+      </div>
+
+      <div class="glass-card" style="text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⚡</div>
+        <h3>ADMIN</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Full platform governance: user account status toggles, role management, listing audit, and safety monitoring.</p>
+        <a href="admin.html" class="btn btn-secondary" style="margin-top: 1rem; width: 100%;">Admin Panel</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 LeftoverLoop Food Redistribution System. Built with Java Spring Boot, MySQL, and Modern Vanilla Web Tech.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Load Impact Stats
+      try {
+        const stats = await ApiClient.getImpactStats();
+        document.getElementById('homeTotalDonated').textContent = stats.totalFoodDonatedUnits;
+        document.getElementById('homeTotalCollected').textContent = stats.totalFoodCollectedUnits;
+        document.getElementById('homePeopleServed').textContent = stats.peopleServed;
+        document.getElementById('homeActiveListings').textContent = stats.activeDonationsCount;
+      } catch (err) {
+        console.error('Failed to load impact stats', err);
+      }
+
+      // Load Active Listings Feed
+      try {
+        const donations = await ApiClient.getActiveDonations();
+        const grid = document.getElementById('homeListingsGrid');
+        if (!donations || donations.length === 0) {
+          grid.innerHTML = '<div class="glass-card" style="grid-column: 1/-1; text-align: center; padding: 2rem;"><p style="color: var(--text-muted);">No active food donations right now. Check back soon!</p></div>';
+          return;
+        }
+
+        grid.innerHTML = donations.slice(0, 6).map(item => `
+          <div class="glass-card donation-card">
+            <img src="${item.imageUrl || 'https://images.unsplash.com/photo-1555244162-803834f70033?w=600'}" class="donation-image" alt="${item.title}">
+            <div class="donation-header">
+              <h3 class="donation-title">${item.title}</h3>
+              ${renderStatusBadge(item.statusColor, item.statusColor === 'RED' ? 'EXPIRING SOON' : item.status)}
+            </div>
+            <div class="donation-meta">
+              <div class="donation-meta-item">📍 ${item.location}</div>
+              <div class="donation-meta-item">🕒 Expiry: ${getTimeRemainingText(item.expiryDate)}</div>
+              <div class="donation-meta-item">🏷️ Category: ${item.category}</div>
+            </div>
+            <div class="quantity-bar">
+              <div class="quantity-fill" style="width: ${(item.remainingQuantity / item.initialQuantity) * 100}%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+              <span style="font-weight: 700; color: var(--accent-green);">${item.remainingQuantity} / ${item.initialQuantity} ${item.unit} available</span>
+              <a href="food-details.html?id=${item.id}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View & Request</a>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Failed to load listings', err);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "leftoverloop-frontend",
+  "version": "1.0.0",
+  "description": "LeftoverLoop Food Redistribution Frontend",
+  "scripts": {
+    "dev": "npx -y serve -p 3000 .",
+    "start": "npx -y serve -p 3000 ."
+  },
+  "dependencies": {}
+}

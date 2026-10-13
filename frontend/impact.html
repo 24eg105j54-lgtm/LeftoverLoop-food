@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impact & Redistribution Analytics - LeftoverLoop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon">LL</div>
+      <span>LeftoverLoop</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="nav-link">Home</a></li>
+      <li><a href="receiver.html" class="nav-link">Browse Food</a></li>
+      <li><a href="impact.html" class="nav-link active">Impact Analytics</a></li>
+    </ul>
+    <div id="navAuthContainer"></div>
+  </nav>
+
+  <div class="container" style="max-width: 1100px; margin-top: 2rem; margin-bottom: 4rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <span class="badge badge-green" style="margin-bottom: 0.5rem;">📊 Real Database Metrics</span>
+        <h1>Community & Environmental Impact</h1>
+        <p style="color: var(--text-muted);">Real-time aggregated metrics directly calculated from database transactions.</p>
+      </div>
+      <div>
+        <button onclick="downloadImpactCsv()" class="btn btn-primary">
+          📥 Export Impact Report (CSV)
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Metric Cards -->
+    <div class="grid-4" style="margin-bottom: 2rem;">
+      <div class="glass-card" style="text-align: center; border-top: 4px solid var(--accent-green);">
+        <h2 id="metricFoodDonated" style="font-size: 2.5rem; color: var(--accent-green);">0</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Total Food Units Donated</p>
+      </div>
+
+      <div class="glass-card" style="text-align: center; border-top: 4px solid var(--accent-blue);">
+        <h2 id="metricFoodCollected" style="font-size: 2.5rem; color: var(--accent-blue);">0</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Total Food Rescued & Collected</p>
+      </div>
+
+      <div class="glass-card" style="text-align: center; border-top: 4px solid var(--accent-purple);">
+        <h2 id="metricPeopleServed" style="font-size: 2.5rem; color: var(--accent-purple);">0</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">People Nourished (Meals)</p>
+      </div>
+
+      <div class="glass-card" style="text-align: center; border-top: 4px solid var(--accent-orange);">
+        <h2 id="metricDistributions" style="font-size: 2.5rem; color: var(--accent-orange);">0</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">Completed Distributions</p>
+      </div>
+    </div>
+
+    <!-- Environmental & Stock Health -->
+    <div class="grid-3" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 2.5rem;">
+      <div class="glass-card">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          🌱 Landfill Diversion
+        </h3>
+        <div id="metricFoodKg" style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem;">0 kg</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Estimated weight of organic food rescued from landfill disposal (~0.75 kg per collected unit).</p>
+      </div>
+
+      <div class="glass-card">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          ☁️ CO₂ Emissions Prevented
+        </h3>
+        <div id="metricCo2Kg" style="font-size: 2rem; font-weight: 800; color: var(--accent-green); margin-bottom: 0.5rem;">0 kg CO₂e</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Greenhouse gas emissions averted by preventing anaerobic organic waste decomposition (2.5 kg CO₂e / kg food).</p>
+      </div>
+
+      <div class="glass-card">
+        <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          📦 Real-Time Available Stock
+        </h3>
+        <div id="metricRemainingFood" style="font-size: 2rem; font-weight: 800; color: var(--accent-blue); margin-bottom: 0.5rem;">0 units</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Current active unreserved food units immediately accessible for receivers and charities.</p>
+      </div>
+    </div>
+
+    <!-- Calculation Methodology & Transparency -->
+    <div class="glass-card" style="padding: 2rem;">
+      <h3 style="margin-bottom: 1rem;">Documented Calculation Methodology</h3>
+      <div style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.7;">
+        <p>• <strong>People Served Calculation:</strong> Standardized food pantry metric where 1 collected portion/unit corresponds to approximately 2.5 nutritional meals served across families and community soup kitchens.</p>
+        <p>• <strong>Environmental Waste Model:</strong> Rescued food units are calculated using an empirical average of 0.75 kg per unit. Each 1.0 kg of food diverted from municipal landfills prevents 2.5 kg of atmospheric methane and carbon dioxide equivalent emissions.</p>
+        <p>• <strong>Live Synchronization:</strong> Data points are dynamically aggregated on-demand from JPA repositories and MySQL tables (<code>food_donations</code> and <code>food_requests</code>).</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 LeftoverLoop Food Redistribution System.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const stats = await ApiClient.getImpactStats();
+
+        document.getElementById('metricFoodDonated').textContent = stats.totalFoodDonatedUnits.toLocaleString();
+        document.getElementById('metricFoodCollected').textContent = stats.totalFoodCollectedUnits.toLocaleString();
+        document.getElementById('metricPeopleServed').textContent = stats.peopleServed.toLocaleString();
+        document.getElementById('metricDistributions').textContent = stats.completedDistributionsCount.toLocaleString();
+
+        document.getElementById('metricFoodKg').textContent = `${stats.foodSavedKg.toLocaleString()} kg`;
+        document.getElementById('metricCo2Kg').textContent = `${stats.co2SavedKg.toLocaleString()} kg CO₂e`;
+        document.getElementById('metricRemainingFood').textContent = `${stats.remainingAvailableFoodUnits.toLocaleString()} units`;
+      } catch (err) {
+        showToast(err.message || 'Failed to load impact analytics', 'error');
+      }
+    });
+
+    async function downloadImpactCsv() {
+      try {
+        showToast('Generating CSV report from live database...', 'info');
+        const token = ApiClient.getToken();
+        if (!token) {
+          showToast('Please log in to download the CSV report.', 'warning');
+          return;
+        }
+        const headers = { 'Authorization': `Bearer ${token}` };
+        
+        const response = await fetch('http://localhost:8080/api/impact/export-csv', { headers });
+        if (response.status === 401 || response.status === 403) {
+          showToast('Your session has expired. Please log in again to download the CSV.', 'warning');
+          return;
+        }
+        if (!response.ok) throw new Error('Failed to export CSV — check that the backend is running.');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `leftoverloop_impact_report_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        showToast('CSV downloaded successfully!', 'success');
+      } catch (err) {
+        showToast(err.message || 'Error downloading CSV', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

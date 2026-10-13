@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receiver Portal - LeftoverLoop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon">LL</div>
+      <span>LeftoverLoop</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="receiver.html" class="nav-link active">Browse Food</a></li>
+      <li><a href="requests.html" class="nav-link">My Requests & Claims</a></li>
+      <li><a href="impact.html" class="nav-link">Impact Report</a></li>
+    </ul>
+    <div id="navAuthContainer"></div>
+  </nav>
+
+  <div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <div>
+        <h1>Available Food Donations</h1>
+        <p style="color: var(--text-muted);">Find rescued surplus meals, bakery, fresh produce, and dairy in your area.</p>
+      </div>
+      <button onclick="openAiMatchModal()" class="btn btn-ai" style="font-size: 1.05rem; padding: 0.75rem 1.5rem;">
+        ✨ AI Smart Match Recommendations
+      </button>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="glass-card" style="margin-bottom: 2rem; padding: 1.25rem;">
+      <div class="grid-3" style="grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+        <div>
+          <label class="form-label">Search Location / Area</label>
+          <input type="text" id="filterLocation" class="form-control" placeholder="Search by city, street, or area...">
+        </div>
+        <div>
+          <label class="form-label">Category</label>
+          <select id="filterCategory" class="form-control">
+            <option value="">All Categories</option>
+            <option value="Prepared Meals">Prepared Meals</option>
+            <option value="Bakery">Bakery & Pastries</option>
+            <option value="Fresh Produce">Fresh Produce</option>
+            <option value="Dairy">Dairy & Refrigerated</option>
+            <option value="Packaged Goods">Packaged Goods</option>
+            <option value="Beverages">Beverages</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Sort By</label>
+          <select id="filterSort" class="form-control">
+            <option value="expiry">Urgent Expiry First</option>
+            <option value="quantity">Highest Quantity</option>
+          </select>
+        </div>
+        <button onclick="applyFilters()" class="btn btn-primary">Filter Listings</button>
+      </div>
+    </div>
+
+    <!-- Active Listings Grid -->
+    <div id="receiverListingsGrid" class="grid-3">
+      <div class="glass-card" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+        <p style="color: var(--text-muted);">Loading food donations...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Smart Match Modal -->
+  <div id="aiMatchModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 650px;">
+      <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <span style="font-size: 1.8rem;">🤖</span>
+        <h2>AI-Powered Food Match Recommendation</h2>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+        Our AI matches demand, category preference, location proximity, and expiry urgency to recommend optimal listings.
+      </p>
+
+      <form id="aiMatchForm" style="margin-bottom: 1.5rem;">
+        <div class="grid-3" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+          <div>
+            <label class="form-label">Category Preference</label>
+            <select id="aiCategory" class="form-control">
+              <option value="ALL">Any Category</option>
+              <option value="Prepared Meals">Prepared Meals</option>
+              <option value="Bakery">Bakery</option>
+              <option value="Fresh Produce">Fresh Produce</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Target Quantity</label>
+            <input type="number" id="aiQuantity" class="form-control" value="10" min="1">
+          </div>
+          <div>
+            <label class="form-label">Receiver Type</label>
+            <select id="aiReceiverType" class="form-control">
+              <option value="INDIVIDUAL">Individual / Family</option>
+              <option value="SHELTER">Community Shelter</option>
+              <option value="NGO">Food Bank / NGO</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" id="btnAiSearch" class="btn btn-ai" style="width: 100%; margin-top: 1rem;">Generate AI Match Rankings</button>
+      </form>
+
+      <div id="aiResultsContainer">
+        <!-- Loaded via JavaScript -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" onclick="closeAiMatchModal()" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Request Food Modal -->
+  <div id="requestModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 500px;">
+      <h2 id="reqModalTitle">Request Food Item</h2>
+      <div id="reqModalDetails" style="margin-top: 0.5rem; margin-bottom: 1.25rem; font-size: 0.9rem; color: var(--text-muted);"></div>
+
+      <form id="requestFoodForm">
+        <input type="hidden" id="reqDonationId">
+        <div class="form-group">
+          <label class="form-label" for="reqQuantity">Quantity to Request (Available: <span id="reqAvailableText" style="color: var(--accent-green); font-weight: 700;">0</span>)</label>
+          <input type="number" id="reqQuantity" class="form-control" min="1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reqNotes">Request Notes / Message for Donor</label>
+          <textarea id="reqNotes" class="form-control" rows="2" placeholder="e.g. Requesting for evening meal distribution at local community hall."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" onclick="closeRequestModal()" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="btnSubmitRequest" class="btn btn-primary">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 LeftoverLoop Food Redistribution System.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/receiver.js"></script>
+</body>
+</html>

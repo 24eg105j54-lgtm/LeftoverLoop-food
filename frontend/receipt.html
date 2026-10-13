@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collection Voucher & Digital Receipt - LeftoverLoop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @media print {
+      .navbar, footer, .no-print {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+        color: #000;
+      }
+      .glass-card {
+        background: #fff !important;
+        color: #000 !important;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon">LL</div>
+      <span>LeftoverLoop</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="receiver.html" class="nav-link">Browse Food</a></li>
+      <li><a href="requests.html" class="nav-link">My Requests</a></li>
+      <li><a href="impact.html" class="nav-link">Impact Report</a></li>
+    </ul>
+    <div id="navAuthContainer"></div>
+  </nav>
+
+  <div class="container" style="max-width: 650px; margin-top: 2rem; margin-bottom: 4rem;">
+    <div id="receiptCard" class="glass-card" style="padding: 2.5rem; text-align: center;">
+      <p style="color: var(--text-muted);">Loading collection voucher...</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 LeftoverLoop Food Redistribution System.</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!AuthManager.isAuthenticated()) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const requestId = params.get('id') || params.get('requestId') || params.get('request_id');
+      const code = params.get('code');
+      const card = document.getElementById('receiptCard');
+
+      if (!requestId && !code) {
+        card.innerHTML = `
+          <div style="padding: 2rem;">
+            <p style="color: var(--accent-orange); font-size: 1.1rem; margin-bottom: 1rem;">⚠️ No request ID or collection code specified.</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Please select a request from your requests list to view its collection voucher.</p>
+            <a href="requests.html" class="btn btn-primary">Go to Requests</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        let req = null;
+        let lastError = null;
+
+        // Primary path: look up by collection code (always passed from requests page)
+        if (code) {
+          try {
+            req = await ApiClient.getRequestByCode(code);
+          } catch (codeErr) {
+            lastError = codeErr;
+            console.warn('getRequestByCode failed, trying getRequestById:', codeErr.message);
+          }
+        }
+
+        // Fallback path: look up by numeric request ID
+        if (!req && requestId) {
+          try {
+            req = await ApiClient.getRequestById(requestId);
+          } catch (idErr) {
+            lastError = idErr;
+            console.warn('getRequestById also failed:', idErr.message);
+          }
+        }
+
+        if (!req || !req.id) {
+          throw lastError || new Error('Voucher details not found. The request may not exist or you may not be authorized to view it.');
+        }
+
+        const qrUrl = generateQrCodeUrl(req.collectionCode);
+        const donorText = req.donorOrganization ? `${req.donorOrganization} (${req.donorName})` : (req.donorName || 'Donor');
+        const receiverText = req.receiverOrganization ? `${req.receiverName} (${req.receiverOrganization})` : (req.receiverName || 'Receiver');
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border); padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="text-align: left;">
+              <h2 style="font-size: 1.6rem; margin-bottom: 0.2rem;">Collection Voucher</h2>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Request ID: #${req.id}</span>
+            </div>
+            <div>
+              ${renderStatusBadge(req.statusColor, req.status)}
+            </div>
+          </div>
+
+          <!-- Highlighted Collection Code & QR Code -->
+          <div style="background: rgba(15, 23, 42, 0.8); border: 2px dashed var(--accent-green); border-radius: var(--radius-md); padding: 1.75rem; margin-bottom: 2rem;">
+            <div style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Secure Collection Code</div>
+            <div style="font-size: 2.5rem; font-weight: 900; letter-spacing: 0.15em; color: var(--accent-green);">${req.collectionCode}</div>
+            
+            <div style="margin-top: 1.25rem;">
+              <img src="${qrUrl}" alt="Collection QR Code" style="width: 180px; height: 180px; border-radius: 8px; border: 4px solid rgba(255, 255, 255, 0.1);">
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.75rem;">Show this QR code or provide the 6-character code upon food handover.</p>
+          </div>
+
+          <!-- Item & Distribution Summary -->
+          <div style="text-align: left; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem;">
+            <h3 style="font-size: 1.15rem; margin-bottom: 1rem; color: var(--text-main); border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem;">Claim & Distribution Details</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+              <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Food Item:</span>
+                <strong>${req.donationTitle || 'N/A'}</strong>
+                <span style="display: block; font-size: 0.8rem; color: var(--text-muted);">${req.donationCategory || ''}</span>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Quantity Claimed:</span>
+                <strong style="color: var(--accent-green); font-size: 1.1rem;">${req.requestedQuantity} ${req.donationUnit || 'units'}</strong>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Donor / Provider:</span>
+                <strong>${donorText}</strong>
+                ${req.donorPhone ? `<span style="display: block; font-size: 0.8rem; color: var(--text-muted);">📞 ${req.donorPhone}</span>` : ''}
+              </div>
+              <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Claimant (Receiver):</span>
+                <strong>${receiverText}</strong>
+                ${req.receiverPhone ? `<span style="display: block; font-size: 0.8rem; color: var(--text-muted);">📞 ${req.receiverPhone}</span>` : ''}
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Pickup Location:</span>
+                <strong>📍 ${req.donationLocation || 'Specified by donor'}</strong>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Pickup Instructions:</span>
+                <span>${req.pickupInstructions || 'Standard pickup upon presentation of code.'}</span>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Requested At:</span>
+                <span>${formatDate(req.requestedAt)}</span>
+              </div>
+              <div>
+                <span style="color: var(--text-muted); display: block; font-size: 0.8rem;">Collection Status:</span>
+                <span>${req.collectedAt ? 'Collected: ' + formatDate(req.collectedAt) : 'Pending Verification'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="no-print" style="display: flex; gap: 1rem; justify-content: center;">
+            <button onclick="window.print()" class="btn btn-secondary">🖨️ Print / Save PDF</button>
+            <a href="requests.html" class="btn btn-primary">Back to Requests</a>
+          </div>
+        `;
+      } catch (err) {
+        card.innerHTML = `
+          <div style="padding: 2rem;">
+            <p style="color: var(--accent-red); font-size: 1.1rem; margin-bottom: 1rem;">❌ Unable to load voucher</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">${err.message || 'Request not found or not authorized.'}</p>
+            <a href="requests.html" class="btn btn-secondary">Back to Requests</a>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

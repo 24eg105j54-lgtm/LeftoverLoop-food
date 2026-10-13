@@ -1,0 +1,10 @@
+{
+  "name": "leftoverloop-backend",
+  "version": "1.0.0",
+  "description": "LeftoverLoop Spring Boot Backend npm launcher",
+  "scripts": {
+    "dev": "mvn spring-boot:run",
+    "test": "mvn clean test",
+    "build": "mvn clean package -DskipTests"
+  }
+}

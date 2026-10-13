@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # MySQL Local Database (Optional - skipped if using Aiven Cloud MySQL)
+  mysql:
+    image: mysql:8.0
+    container_name: leftoverloop-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env}"
+      MYSQL_DATABASE: leftoverloop_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./database/sample-data.sql:/docker-entrypoint-initdb.d/2-sample.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: leftoverloop-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/leftoverloop_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-root}
+      - "SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in .env}"
+      - "JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET in .env}"
+      - AI_API_KEY=${AI_API_KEY:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Frontend Static Server Service
+  frontend:
+    image: nginx:alpine
+    container_name: leftoverloop-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+
+volumes:
+  mysql_data:
